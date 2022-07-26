@@ -4,11 +4,40 @@ from django.conf import settings
 from django.contrib import messages
 from .forms import PaymentForms
 from .models import Payment
+from django.contrib.auth.models import User
+from rest_framework import viewsets
+from rest_framework.views import APIView
+from .serializers import UserSerializer, PaymentSerializer,PaymentVerificationSerializer
+
 # Create your views here.
 
 
-def initiate_payment(request: HttpRequest) -> HttpResponse:
-    if request.method == 'POST':
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+class PaymentViewSet(viewsets.ModelViewSet):
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer    
+
+
+class VerifyPayment(APIView):
+    
+    def post(self, request, ref):
+        payment = PaymentVerificationSerializer(ref=ref)
+        # payment = get_object_or_404(Payment, ref=ref)
+        verified = payment.verify_payment()
+        if verified:
+            messages.success(request, "verification successful")
+        else:
+            messages.error(request, 'verification failed')
+        return redirect('initiate payment')
+
+
+def initiate_payment(request):
+    if request.method == "POST":
         paymentform = PaymentForms(request.POST)
         if paymentform.is_valid():
             payment = paymentform.save()
@@ -20,9 +49,10 @@ def initiate_payment(request: HttpRequest) -> HttpResponse:
             'paymentform': paymentform})
 
 
-def verify_payment(request: HttpRequest, ref: str) -> HttpResponse:
+def verify_payment(request, ref:str):
+    print(ref)
     payment = get_object_or_404(Payment, ref=ref)
-    verified = payment.verify_paymrnt()
+    verified = payment.verify_payment()
 
     if verified:
         messages.success(request, "verification successful")

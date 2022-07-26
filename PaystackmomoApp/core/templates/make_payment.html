@@ -3,39 +3,39 @@
 
 {% block content %}
 
-<h5> Mahe payment in GH: {{ payment.amount }} </h5>
-
-    <script src="https://js.paystack.co/v1/inline.js"></script>
-    <button id='django-paystack-button' onclick= "PayWithPaystack()">Make Payment</button> 
+<form id="paymentForm">
  
+   
+      <button type="submit" onclick="payWithPaystack()"> Pay </button>
+   
+  </form>
+  
+  <script src="https://js.paystack.co/v1/inline.js"></script> 
+
 <script>
-  function PayWithPaystack(){
-    let currency = "GHS";
-    let plan ='';
-    let ref = "{{ payment.ref }}";
-    let obj ={
-        key ="{{ paystack_public_key }}";
-        email = "{{ payment.email }}";
-        amount = "{{ payment.amount_value }}"
-        ref: ref,
+    const paymentForm = document.getElementById('paymentForm');
+    paymentForm.addEventListener("submit", payWithPaystack, false);
+    function payWithPaystack(e) {
+      e.preventDefault();
+    
+      let handler = PaystackPop.setup({
+        key: '{{paystack_public_key }}', // Replace with your public key
+        email: '{{ payment.email }}',
+        currency: 'GHS',
+        amount: '{{ payment.amount_value }}',
+        ref: '{{ payment.ref }}', // generates a pseudo-unique reference. Please replace with a reference you generated. Or remove the line entirely so our API will generate one for you
+        // label: "Optional string that replaces customer email"
+        onClose: function(){
+          alert('Window closed.');
+        },
         callback : function(response){
             window.location.href = " {% url 'verify payment' payment.ref %}" ;
         }
+      });
+     
+      handler.openIframe();
+
     }
-  
-    if(boolean(currency)){
-        obj.currency.toUpper();
-    }
-
-    if(boolean(plan)){
-        obj.plan = plan;
-    }
-
-
-    var handler =PaystackPop.setup(obj);
-    handler.openIframe();
-  }
-
 </script>
 
 {% endblock  %}
