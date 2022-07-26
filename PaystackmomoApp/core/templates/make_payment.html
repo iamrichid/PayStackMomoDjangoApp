@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<h5> Mahe payment in GH: {{ payment.amount }} </h5>
+
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <button id='django-paystack-button' onclick= "PayWithPaystack()">Make Payment</button> 
+ 
+<script>
+  function PayWithPaystack(){
+    let currency = "GHS";
+    let plan ='';
+    let ref = "{{ payment.ref }}";
+    let obj ={
+        key ="{{ paystack_public_key }}";
+        email = "{{ payment.email }}";
+        amount = "{{ payment.amount_value }}"
+        ref: ref,
+        callback : function(response){
+            window.location.href = " {% url 'verify payment' payment.ref %}" ;
+        }
+    }
+  
+    if(boolean(currency)){
+        obj.currency.toUpper();
+    }
+
+    if(boolean(plan)){
+        obj.plan = plan;
+    }
+
+
+    var handler =PaystackPop.setup(obj);
+    handler.openIframe();
+  }
+
+</script>
+
+{% endblock  %}
+
+
