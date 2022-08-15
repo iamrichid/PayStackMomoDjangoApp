@@ -1,6 +1,7 @@
 from django.contrib import admin
-from .models import Payment
+from .models import BankPaymentProfile, MobileMoneyProfile
 
 # Register your models here.
 
-admin.site.register(Payment)
+admin.site.register(MobileMoneyProfile)
+admin.site.register(BankPaymentProfile)

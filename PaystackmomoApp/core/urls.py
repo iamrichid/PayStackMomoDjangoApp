@@ -6,7 +6,8 @@ from rest_framework import routers
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
-router.register(r'add_payment', views.PaymentViewSet)
+router.register(r'mobile_money_profile',views.MoMoViewSet)
+router.register(r'bank_profile_profile',views.BankViewSet)
 
 
 # Wire up our API using automatic URL routing.

@@ -1,7 +1,9 @@
-from .models import Payment
-from rest_framework import serializers
-from django.contrib.auth.models import User
 
+from django.contrib.auth.models import User
+from rest_framework import serializers
+
+from .models import (BankPaymentProfile, MobileMoneyProfile, MomoPayment,
+                    )
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -10,12 +12,21 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['url', 'username', 'email']
 
 
-class PaymentSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model= Payment
-        fields = ('email', 'amount')   
-
 class PaymentVerificationSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model= Payment
+        model= MomoPayment
         fields = ('email', 'amount', 'ref')
+
+class MobileMoneyProfileSerializer(serializers.HyperlinkedModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.username')
+    class Meta:
+        model = MobileMoneyProfile
+        fields = ('__all__')   
+         
+        
+
+class BankProfileSerializer(serializers.HyperlinkedModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.username')
+    class Meta:
+        model = BankPaymentProfile
+        fields = ('__all__')    

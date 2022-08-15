@@ -1,13 +1,17 @@
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
 from django.conf import settings
 from django.contrib import messages
-from .forms import PaymentForms
-from .models import Payment
 from django.contrib.auth.models import User
-from rest_framework import viewsets
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from rest_framework import viewsets,permissions
 from rest_framework.views import APIView
-from .serializers import UserSerializer, PaymentSerializer,PaymentVerificationSerializer
+from .permissions import IsOwnerOrReadOnly
+
+from .forms import PaymentForms
+from .models import BankPaymentProfile, MobileMoneyProfile
+from .serializers import (BankProfileSerializer, MobileMoneyProfileSerializer,
+                         PaymentVerificationSerializer,
+                          UserSerializer)
 
 # Create your views here.
 
@@ -18,10 +22,43 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
 
-class PaymentViewSet(viewsets.ModelViewSet):
-    queryset = Payment.objects.all()
-    serializer_class = PaymentSerializer    
+class MoMoViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                      IsOwnerOrReadOnly]
+    queryset = MobileMoneyProfile.objects.all()
+    serializer_class = MobileMoneyProfileSerializer
 
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+    def get_queryset(self):
+        """
+        This view should return a list of all the Profile
+        for the currently authenticated user.
+        """
+        user = self.request.user.id
+        return MobileMoneyProfile.objects.filter(owner_id=user)
+
+class BankViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                      IsOwnerOrReadOnly]
+    queryset = BankPaymentProfile.objects.all()
+    serializer_class = BankProfileSerializer
+    
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+    def get_queryset(self):
+        """
+        This view should return a list of all the Profile
+        for the currently authenticated user.
+        """
+        user = self.request.user.id
+        print(f'{user} the id of the user')
+        return BankPaymentProfile.objects.filter(owner_id=user) 
+
+    
 
 class VerifyPayment(APIView):
     
@@ -51,8 +88,8 @@ def initiate_payment(request):
 
 def verify_payment(request, ref:str):
     print(ref)
-    payment = get_object_or_404(Payment, ref=ref)
-    verified = payment.verify_payment()
+    # payment = get_object_or_404(Payment, ref=ref)
+    # verified = payment.verify_payment()
 
     if verified:
         messages.success(request, "verification successful")
